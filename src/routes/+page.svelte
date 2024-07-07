@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { urlStore, urlContentStore } from '$stores/globals';
 	import UrlInput from '$components/UrlInput.svelte';
+	import type { FetchContentResponse } from '$lib/types';
 
 	function goToPreviousChapter() {
 		console.log('Previous Chapter');
@@ -16,16 +17,15 @@
 	}
 
 	// Fetch the content from the given URL and update urlContent store
-	async function fetchUrlContent(url: string) {
+	async function fetchUrlContent(url: string): Promise<FetchContentResponse | undefined> {
 		if (url) {
 			try {
 				const response = await fetch(`/api/fetch-content?url=${encodeURIComponent(url)}`);
 				const text = await response.text();
-				console.log(text);
-				return text;
+				return JSON.parse(text);
 			} catch (error) {
 				console.error('Error fetching URL content:', error);
-				urlContentStore.set('Error fetching content. Please try again.');
+				urlContentStore.set(null);
 				return undefined;
 			}
 		}
@@ -34,9 +34,10 @@
 	// Listen for changes in the url store
 	$: {
 		$urlStore, // Reactive dependency
-			fetchUrlContent($urlStore).then((content) => {
-				if (content) {
-					urlContentStore.set(content);
+			fetchUrlContent($urlStore).then((data) => {
+				console.log('fetched data: ', data);
+				if (data) {
+					urlContentStore.set(data);
 				}
 			});
 	}
@@ -48,9 +49,9 @@
 		handleNewValue={handleNewUrl}
 	/>
 
-	<div class="flex-1 overflow-y-auto p-4 bg-gray-900 prose-xl text-slate-400 w-full">
+	<div class="flex-1 overflow-y-auto p-6 bg-gray-900 prose-xl text-slate-400">
 		{#if $urlContentStore}
-			{@html JSON.parse($urlContentStore)['content']}
+			{@html $urlContentStore['content']}
 		{/if}
 	</div>
 
@@ -63,10 +64,3 @@
 		</button>
 	</div>
 </div>
-
-<style>
-	body {
-		margin: 0;
-		font-family: sans-serif;
-	}
-</style>

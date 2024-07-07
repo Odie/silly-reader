@@ -11,8 +11,12 @@ function extracrContent(html: string) {
   // Remove all script tags
   content.find('script').remove();
 
+  const linkBtns = $('.operate .btn-primary');
+  const prevLink = linkBtns.first().attr('href');
+  const nextLink = linkBtns.last().attr('href');
+
   // Return the cleaned HTML content
-  return { "content": content.html() };
+  return { "content": content.html(), prevLink, nextLink };
 }
 
 export async function GET({ url }) {
