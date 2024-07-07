@@ -2,7 +2,20 @@ import { json } from '@sveltejs/kit';
 import { cacheStore, cacheRetrieve } from '$lib/server/filecache'
 import * as cheerio from 'cheerio';
 
-function extracrContent(html: string) {
+function toAbsoluteUrl(targetUrl: string, originUrl: string) {
+  if (!targetUrl)
+    return null;
+
+  // Is the targetUrl already an absolute URL?
+  // If so, we don't have to do anything further.
+  if (targetUrl.startsWith("http")) {
+    return targetUrl;
+  }
+
+  return URL(targetUrl, originUrl);
+}
+
+function extracrContent(originUrl: string, html: string) {
   const $ = cheerio.load(html);
 
   // Find the element with id='nr'
@@ -12,8 +25,13 @@ function extracrContent(html: string) {
   content.find('script').remove();
 
   const linkBtns = $('.operate .btn-primary');
-  const prevLink = linkBtns.first().attr('href');
-  const nextLink = linkBtns.last().attr('href');
+  let prevLink = linkBtns.first().attr('href');
+  if (prevLink)
+    prevLink = new URL(prevLink, originUrl).href;
+
+  let nextLink = linkBtns.last().attr('href');
+  if (nextLink)
+    nextLink = new URL(nextLink, originUrl).href;
 
   // Return the cleaned HTML content
   return { "content": content.html(), prevLink, nextLink };
@@ -41,7 +59,7 @@ export async function GET({ url }) {
       await cacheStore(targetUrl, html);
     }
 
-    return json(extracrContent(html));
+    return json(extracrContent(targetUrl, html));
   } catch (error) {
     console.error('Error fetching or caching content:', error);
     return json({ error: 'Failed to fetch content' }, { status: 500 });

@@ -3,17 +3,32 @@
 	import UrlInput from '$components/UrlInput.svelte';
 	import type { FetchContentResponse } from '$lib/types';
 
-	function goToPreviousChapter() {
-		console.log('Previous Chapter');
-	}
-
-	function goToNextChapter() {
-		console.log('Next Chapter');
-	}
+	let contentDiv: HTMLDivElement;
 
 	function handleNewUrl(url: string) {
 		console.log('new url entered: ', url);
 		urlStore.set(url);
+	}
+
+	function isValidUrl(url: string): boolean {
+		if (!url) return false;
+
+		try {
+			new URL(url);
+			return true;
+		} catch (error) {
+			return false;
+		}
+	}
+
+	function gotoUrl(url: string) {
+		if (isValidUrl(url)) {
+			urlStore.set(url);
+
+			if (contentDiv) {
+				contentDiv.scrollTop = 0;
+			}
+		}
 	}
 
 	// Fetch the content from the given URL and update urlContent store
@@ -49,17 +64,30 @@
 		handleNewValue={handleNewUrl}
 	/>
 
-	<div class="flex-1 overflow-y-auto p-6 bg-gray-900 prose-xl text-slate-400">
+	<div
+		class="flex-1 overflow-y-auto p-6 bg-gray-900 prose-xl text-slate-400"
+		bind:this={contentDiv}
+	>
 		{#if $urlContentStore}
 			{@html $urlContentStore['content']}
 		{/if}
 	</div>
 
 	<div class="bg-gray-800 p-4 flex justify-between">
-		<button on:click={goToPreviousChapter} class="bg-gray-700 text-gray-200 px-4 py-2 rounded">
+		<button
+			class="bg-gray-700 text-gray-200 px-4 py-2 rounded transition-colors {$urlContentStore?.prevLink
+				? 'hover:bg-gray-600'
+				: 'text-gray-500 cursor-not-allowed'}"
+			on:click={gotoUrl($urlContentStore?.prevLink)}
+		>
 			Previous Chapter
 		</button>
-		<button on:click={goToNextChapter} class="bg-gray-700 text-gray-200 px-4 py-2 rounded">
+		<button
+			class="bg-gray-700 text-gray-200 px-4 py-2 rounded transition-colors {$urlContentStore?.prevLink
+				? 'hover:bg-gray-600'
+				: 'text-gray-500 cursor-not-allowed'}"
+			on:click={gotoUrl($urlContentStore?.nextLink)}
+		>
 			Next Chapter
 		</button>
 	</div>
