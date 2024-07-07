@@ -48,7 +48,7 @@
 		handleNewValue={handleNewUrl}
 	/>
 
-	<div class="flex-1 overflow-y-auto p-4 bg-gray-900">
+	<div class="flex-1 overflow-y-auto p-4 bg-gray-900 prose-xl text-slate-400 w-full">
 		{#if $urlContentStore}
 			{@html JSON.parse($urlContentStore)['content']}
 		{/if}
