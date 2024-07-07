@@ -17,6 +17,12 @@ const config = {
     appDir: 'appDir',
     paths: {
       base: process.argv.includes('dev') ? '' : process.env.BASE_PATH
+    },
+    alias: {
+      // an alias ending /* will only match
+      // the contents of a directory, not the directory itself
+      '$stores/*': 'src/stores/*',
+      '$components/*': 'src/components/*',
     }
   }
 };
